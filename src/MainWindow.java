@@ -1,0 +1,766 @@
+
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.event.KeyEvent;
+import java.awt.print.PageFormat;
+import java.awt.print.Paper;
+import java.awt.print.Printable;
+import java.awt.print.PrinterException;
+import java.awt.print.PrinterJob;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.Properties;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.prefs.Preferences;
+import javax.print.PrintService;
+import javax.print.PrintServiceLookup;
+import javax.print.attribute.HashPrintServiceAttributeSet;
+import javax.print.attribute.PrintServiceAttributeSet;
+import javax.print.attribute.standard.PrinterName;
+import javax.swing.JOptionPane;
+import javax.swing.UIManager;
+
+/*
+ * SLUB EMERGERCY CIRCULATION
+ * (c) SLUB Dresden 2020
+ *
+ * Author: Georg Sieber <Georg.Sieber@slub-dresden.de>
+ *
+ * Ausleihe/Rückgabe im Notbetrieb ohne Serververbindung
+ * Produziert Libero-kompatible Logdateien für den Import,
+ * sobald der Server wieder erreichbar ist.
+ */
+
+public class MainWindow extends javax.swing.JFrame {
+    
+    static String VERSION = "v1.3.0";
+
+    String mSystemBenutzer = System.getProperty("user.name");
+    String mLogFileName = "npc"+mSystemBenutzer+".dat";
+    String mMexFileName = "mex.txt";
+    
+    ArrayList<AusgeliehenesExemplar> mAusgelieheneExemplare = new ArrayList<>();
+    
+    Preferences mPrefs = Preferences.userNodeForPackage(MainWindow.class);
+    
+    public MainWindow(String mexFileName, String logFileName) {
+        // init UI
+        setTitle("Libero Noterfassung " + mSystemBenutzer + " " + VERSION);
+        initComponents();
+        loadExternalLogo();
+        setLocationRelativeTo(null);
+        txtLog.setEditable(false);
+        txtAusleiheBenutzer.requestFocus();
+        if(System.getProperty("os.name").toLowerCase().equals("linux")) {
+            // default receipt printer name on Linux
+            txtDrucker.setText("EPSON-TM-T88V");
+        } else {
+            // default receipt printer name on Windows
+            txtDrucker.setText("EPSON TM-T88V Receipt");
+        }
+        
+        // get defaults
+        txtDruckAnzahl.setText(mPrefs.get("RECEIPT_AMOUNT", "1"));
+        
+        String receiptPrinter = mPrefs.get("RECEIPT_PRINTER", "");
+        if(!receiptPrinter.equals("")) { txtDrucker.setText(receiptPrinter); }
+        loadConfiguration();
+        
+        
+        // read mex file
+        if(mexFileName != null && !mexFileName.equals("")) mMexFileName = mexFileName;
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(mMexFileName));
+            String line = br.readLine();
+            while(line != null) {
+                String[] splitted = line.split("\\|", -1);
+                if(splitted.length == 12) {
+                    DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                    Date faellig = new Date();
+                    try {
+                        faellig = dateFormat.parse(splitted[8]);
+                    } catch (ParseException ex) {}
+                    mAusgelieheneExemplare.add(new AusgeliehenesExemplar(
+                        splitted[0], splitted[1], splitted[3], splitted[4], faellig, splitted[9].trim().equals("1"), splitted[10]
+                    ));
+                }
+                
+                line = br.readLine();
+            }
+            br.close();
+            
+            txtLog.setText(txtLog.getText() + "Datei mit " + mAusgelieheneExemplare.size() + " ausgeliehenen Medien und Vormerkungen wurde eingelesen." + "\n");
+        } catch (IOException ex) {
+            System.err.println(ex.getMessage());
+        }
+        
+        // read prev log
+        if(logFileName != null && !logFileName.equals("")) mLogFileName = logFileName;
+        int counter = 0;
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(mLogFileName));
+            String line = br.readLine();
+            while(line != null) {
+                counter ++;
+                line = br.readLine();
+            }
+            br.close();
+        } catch (IOException ex) {
+            System.err.println(ex.getMessage());
+        }
+        if(counter > 0) {
+            txtLog.setText(txtLog.getText() + "Existierendes Log mit " + counter + " Einträgen wird fortgeführt." + "\n");
+        } else {
+            appendLogLineFile("Noterfassung from "+mSystemBenutzer+"	Erstellt am: "+getCurrentDateTimeString());
+        }
+    }
+
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        jtpControl = new javax.swing.JTabbedPane();
+        jPanel1 = new javax.swing.JPanel();
+        txtAusleiheBenutzer = new javax.swing.JTextField();
+        jLabel2 = new javax.swing.JLabel();
+        txtAusleiheExemplar = new javax.swing.JTextField();
+        jLabel3 = new javax.swing.JLabel();
+        txtAusleiheTage = new javax.swing.JTextField();
+        jLabel6 = new javax.swing.JLabel();
+        btnEnd = new javax.swing.JButton();
+        jLabel12 = new javax.swing.JLabel();
+        jPanel2 = new javax.swing.JPanel();
+        txtRueckgabeExemplar = new javax.swing.JTextField();
+        jLabel4 = new javax.swing.JLabel();
+        btnEndRueckgabe = new javax.swing.JButton();
+        jLabel10 = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
+        jPanel3 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        txtLog = new javax.swing.JTextArea();
+        txtDrucker = new javax.swing.JTextField();
+        jLabel7 = new javax.swing.JLabel();
+        jLabel8 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        txtDruckText = new javax.swing.JTextArea();
+        txtDruckAnzahl = new javax.swing.JTextField();
+        jLabel9 = new javax.swing.JLabel();
+        lblSupportTitle = new javax.swing.JLabel();
+        lblSupportText = new javax.swing.JLabel();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setMinimumSize(new java.awt.Dimension(749, 518));
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
+
+        jtpControl.setFont(new java.awt.Font("Ubuntu", 1, 13)); // NOI18N
+
+        txtAusleiheBenutzer.setNextFocusableComponent(txtAusleiheExemplar);
+        txtAusleiheBenutzer.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txtAusleiheBenutzerKeyPressed(evt);
+            }
+        });
+
+        jLabel2.setText("Benutzernummer:");
+
+        txtAusleiheExemplar.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txtAusleiheExemplarKeyPressed(evt);
+            }
+        });
+
+        jLabel3.setText("Exemplarbarcode:");
+
+        txtAusleiheTage.setText("28");
+
+        jLabel6.setText("Fällig in Tagen:");
+
+        btnEnd.setText("Beleg + Nächster Benutzer");
+        btnEnd.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnEndMouseClicked(evt);
+            }
+        });
+
+        jLabel12.setFont(new java.awt.Font("Ubuntu", 0, 10)); // NOI18N
+        jLabel12.setText("Ausführen: ENTER");
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btnEnd, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel2)
+                            .addComponent(jLabel3)
+                            .addComponent(jLabel6))
+                        .addGap(18, 18, 18)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jLabel12)
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addComponent(txtAusleiheExemplar)
+                            .addComponent(txtAusleiheBenutzer, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(txtAusleiheTage, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE))))
+                .addContainerGap())
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtAusleiheBenutzer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel2))
+                .addGap(8, 8, 8)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtAusleiheExemplar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel3))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel12)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 73, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtAusleiheTage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel6))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(btnEnd)
+                .addContainerGap())
+        );
+
+        jtpControl.addTab("Ausleihe (F12)", jPanel1);
+
+        txtRueckgabeExemplar.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txtRueckgabeExemplarKeyPressed(evt);
+            }
+        });
+
+        jLabel4.setText("Exemplarbarcode:");
+
+        btnEndRueckgabe.setText("Beleg + Nächster Benutzer");
+        btnEndRueckgabe.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnEndRueckgabeMouseClicked(evt);
+            }
+        });
+
+        jLabel10.setFont(new java.awt.Font("Ubuntu", 0, 10)); // NOI18N
+        jLabel10.setText("Ausführen: ENTER");
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btnEndRueckgabe, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(jLabel4)
+                        .addGap(18, 18, 18)
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addComponent(jLabel10)
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addComponent(txtRueckgabeExemplar, javax.swing.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE))))
+                .addContainerGap())
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtRueckgabeExemplar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel4))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel10)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 149, Short.MAX_VALUE)
+                .addComponent(btnEndRueckgabe)
+                .addContainerGap())
+        );
+
+        jtpControl.addTab("Rückgabe (F11)", jPanel2);
+
+        jLabel5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/logo.png"))); // NOI18N
+
+        jLabel1.setFont(new java.awt.Font("Ubuntu", 1, 13)); // NOI18N
+        jLabel1.setText("Transaktionen");
+
+        txtLog.setColumns(20);
+        txtLog.setFont(new java.awt.Font("DejaVu Sans Mono", 0, 12)); // NOI18N
+        txtLog.setRows(5);
+        jScrollPane2.setViewportView(txtLog);
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addComponent(jLabel1)
+                .addGap(0, 0, Short.MAX_VALUE))
+            .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING)
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 168, Short.MAX_VALUE))
+        );
+
+        jLabel7.setText("Drucker:");
+
+        jLabel8.setText("Text:");
+
+        txtDruckText.setColumns(20);
+        txtDruckText.setFont(new java.awt.Font("Ubuntu", 0, 12)); // NOI18N
+        txtDruckText.setRows(5);
+        txtDruckText.setText("");
+        jScrollPane1.setViewportView(txtDruckText);
+
+        txtDruckAnzahl.setText("2");
+
+        jLabel9.setText("Anzahl:");
+
+        lblSupportTitle.setFont(new java.awt.Font("Ubuntu", 1, 13)); // NOI18N
+        lblSupportTitle.setText("");
+
+        lblSupportText.setText("");
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel5)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(lblSupportTitle)
+                                    .addComponent(lblSupportText)))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel7)
+                                    .addComponent(jLabel8)
+                                    .addComponent(jLabel9))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(txtDrucker)
+                                    .addComponent(txtDruckAnzahl)
+                                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 291, Short.MAX_VALUE))))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 31, Short.MAX_VALUE)
+                        .addComponent(jtpControl, javax.swing.GroupLayout.PREFERRED_SIZE, 338, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel5)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(lblSupportTitle)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(lblSupportText)))
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(txtDrucker, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel7))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(txtDruckAnzahl, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel9))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel8)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 157, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(jtpControl, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(6, 6, 6)
+                .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        jLabel5.getAccessibleContext().setAccessibleName("Logo");
+
+        pack();
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void txtAusleiheExemplarKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtAusleiheExemplarKeyPressed
+        if(evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            if(txtAusleiheBenutzer.getText().equals("") || txtAusleiheExemplar.getText().equals("")) {
+                errorBox("Ungültige Eingabe", "Benutzer- oder Exemplarfeld ist leer.");
+                return;
+            }
+            try {  
+                int tage = Integer.parseInt( txtAusleiheTage.getText() );
+                doAusleihe(txtAusleiheBenutzer.getText(), txtAusleiheExemplar.getText(), tage, txtDrucker.getText());
+            } catch (NumberFormatException e) {
+                errorBox("Ungültige Eingabe", "Bitte geben Sie eine Zahl für 'fällig' ein.");
+            }  
+        }
+        switchMode(evt);
+    }//GEN-LAST:event_txtAusleiheExemplarKeyPressed
+
+    private void txtRueckgabeExemplarKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtRueckgabeExemplarKeyPressed
+        if(evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            if(txtRueckgabeExemplar.getText().equals("")) {
+                errorBox("Ungültige Eingabe", "Exemplarfeld ist leer.");
+                return;
+            }
+            doRueckgabe(txtRueckgabeExemplar.getText(), txtDrucker.getText());
+        }
+        switchMode(evt);
+    }//GEN-LAST:event_txtRueckgabeExemplarKeyPressed
+
+    private void txtAusleiheBenutzerKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtAusleiheBenutzerKeyPressed
+        if(evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            txtAusleiheExemplar.requestFocus();
+        }
+        switchMode(evt);
+    }//GEN-LAST:event_txtAusleiheBenutzerKeyPressed
+
+    private void btnEndMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnEndMouseClicked
+        String drucker = txtDrucker.getText();
+        String benutzer = txtAusleiheBenutzer.getText();
+        if(!drucker.equals("")) {
+            if(!mTmpPrintLinesAusleihe.equals("")) {
+                int anzahl = 1;
+                try {  
+                    anzahl = Integer.parseInt( txtDruckAnzahl.getText() );
+                } catch (NumberFormatException e) {}
+                String druckText =
+                    txtDruckText.getText() + "\n" +
+                    getCurrentDateTimeString() + "\n" +
+                    benutzer + "\n" +
+                    "---------- Ausleihquittung ----------\n" +
+                    mTmpPrintLinesAusleihe +
+                    "----------    Belegende    ----------\n";
+                printBeleg(drucker, druckText, anzahl);
+            } else {
+                errorBox("Keine Ausleihen", "Es wird kein Beleg gedruckt, da keine Medien verbucht wurden.");
+            }
+        }
+        
+        mTmpPrintLinesAusleihe = "";
+        txtAusleiheBenutzer.setText("");
+        txtAusleiheExemplar.setText("");
+        txtAusleiheBenutzer.requestFocus();
+    }//GEN-LAST:event_btnEndMouseClicked
+
+    private void btnEndRueckgabeMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnEndRueckgabeMouseClicked
+        String drucker = txtDrucker.getText();
+        if(!drucker.equals("")) {
+            if(!mTmpPrintLinesRueckgabe.equals("")) {
+                int anzahl = 1;
+                try {  
+                    anzahl = Integer.parseInt( txtDruckAnzahl.getText() );
+                } catch (NumberFormatException e) {}
+                String druckText =
+                    txtDruckText.getText() + "\n" +
+                    getCurrentDateTimeString() + "\n" +
+                    "----------  Rückgabebeleg  ----------\n" +
+                    mTmpPrintLinesRueckgabe +
+                    "----------    Belegende    ----------\n";
+                printBeleg(drucker, druckText, anzahl);
+            } else {
+                errorBox("Keine Rückgaben", "Es wird kein Beleg gedruckt, da keine Medien verbucht wurden.");
+            }
+        }
+        
+        mTmpPrintLinesRueckgabe = "";
+        txtRueckgabeExemplar.setText("");
+        txtRueckgabeExemplar.requestFocus();
+    }//GEN-LAST:event_btnEndRueckgabeMouseClicked
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        mPrefs.put("RECEIPT_AMOUNT", txtDruckAnzahl.getText());
+        mPrefs.put("RECEIPT_PRINTER", txtDrucker.getText());
+    }//GEN-LAST:event_formWindowClosing
+
+    private void switchMode(java.awt.event.KeyEvent evt) {
+        if(evt.getKeyCode() == KeyEvent.VK_F11) {
+            jtpControl.setSelectedIndex(1);
+        }
+        if(evt.getKeyCode() == KeyEvent.VK_F12) {
+            jtpControl.setSelectedIndex(0);
+        }
+    }
+    
+    String mTmpPrintLinesAusleihe = "";
+    private void doAusleihe(String benutzer, String exemplar, int tage, String drucker) {
+        appendLogLineDisplay("[ "+getCurrentDateTimeString()+" ]" + "  " + exemplar + "  --A-->  " + benutzer + "  (fällig: " + getDueDateString(tage) + ")");
+        appendLogLineFile(getCurrentDateTimeString() + "|" + "I" + "|" + benutzer + "|" + exemplar + "|" + getDueDateString(tage) + "|" + mSystemBenutzer);
+        
+        if(!drucker.equals("")) {
+            mTmpPrintLinesAusleihe += exemplar + "  (fällig: " + getDueDateString(tage) + ")" + "\n";
+        }
+        
+        txtAusleiheExemplar.setText("");
+        txtAusleiheExemplar.requestFocus();
+    }
+    
+    String mTmpPrintLinesRueckgabe = "";
+    private void doRueckgabe(String exemplar, String drucker) {
+        if(mAusgelieheneExemplare.size() > 0) {
+            AusgeliehenesExemplar ausgeliehenesExemplar = findeAusgeliehenesExemplar(exemplar);
+            if(ausgeliehenesExemplar == null) {
+                warnBox("Exemplar nicht ausgeliehen!", "Der eingegebene Barcode konnte nicht in der Tabelle der ausgeliehenen Exemplare gefunden werden. Die Transaktion wird trotzdem gebucht.");
+            } else {
+                if(!(ausgeliehenesExemplar.mNote1.equals("") && ausgeliehenesExemplar.mNote2.equals(""))) {
+                    infoBox("Exemplar-Informationen", ausgeliehenesExemplar.mNote1 + "\n" + ausgeliehenesExemplar.mNote2);
+                }
+                
+                if(ausgeliehenesExemplar.mFaellig.before(new Date())) {
+                    DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
+                    warnBox("Ausleihfrist überzogen!", "Die Ausleihfrist endete am: " + dateFormat.format(ausgeliehenesExemplar.mFaellig));
+                }
+                
+                if(ausgeliehenesExemplar.mVorgemerkt) {
+                    infoBox("Exemplar vorgemerkt!", "Dieses Exemplar ist vorgemerkt. Es wird ein Vormerk-Beleg gedruckt.");
+                    
+                    String druckText =
+                        getCurrentDateTimeString() + "\n" +
+                        "----------    Vormerkung   ----------\n\n" +
+                        exemplar + "  --für-->  " + ausgeliehenesExemplar.mVormerkNutzer + "\n\n" +
+                        "----------    Belegende    ----------\n";
+                    printBeleg(drucker, druckText, 1);
+                }
+            }
+        }
+        
+        appendLogLineDisplay("[ "+getCurrentDateTimeString()+" ]" + "  <--R--  " + exemplar);
+        appendLogLineFile(getCurrentDateTimeString() + "|" + "R" + "|" + "" + "|" + exemplar + "|" + "" + "|" + "^"+mSystemBenutzer);
+        
+        if(!drucker.equals("")) {
+            mTmpPrintLinesRueckgabe += exemplar + "\n";
+        }
+        
+        txtRueckgabeExemplar.setText("");
+    }
+    
+    private AusgeliehenesExemplar findeAusgeliehenesExemplar(String barcode) {
+        for(AusgeliehenesExemplar e : mAusgelieheneExemplare) {
+            if(e.mBarcode.equals(barcode)) {
+                return e;
+            }
+        }
+        return null;
+    }
+    
+    private void appendLogLineDisplay(String text) {
+        txtLog.setText(txtLog.getText() + text + "\n");
+    }
+    private void appendLogLineFile(String text) {
+        try(FileWriter fw = new FileWriter(mLogFileName, true);
+        BufferedWriter bw = new BufferedWriter(fw);
+        PrintWriter out = new PrintWriter(bw)) {
+            out.println(text);
+        } catch (IOException e) {
+            // exception handling left as an exercise for the reader
+        }
+    }
+    
+    private String getCurrentDateTimeString() {
+        DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy,HH:mm:ss");
+        Calendar cal = Calendar.getInstance();
+        return dateFormat.format(cal.getTime());
+    }
+    private String getDueDateString(int days) {
+        DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, days);
+        return dateFormat.format(cal.getTime());
+    }
+    
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+        // set native look and feel
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            // in a perfect world, we would handle this exception
+        }
+
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                String mexFileName = null;
+                String logFileName = null;
+                
+                for(int i = 0; i < args.length; i++) {
+                    if(args[i].startsWith("--mex-file") && args.length >= i+2) {
+                        mexFileName = args[i+1];
+                    }
+                    if(args[i].startsWith("--log-file") && args.length >= i+2) {
+                        logFileName = args[i+1];
+                    }
+                }
+                
+                new MainWindow(mexFileName, logFileName).setVisible(true);
+            }
+        });
+    }
+
+    private void loadConfiguration() {
+        Properties configuration = new Properties();
+        try (java.io.Reader reader = Files.newBufferedReader(
+                new File("config.properties").toPath(), StandardCharsets.UTF_8)) {
+            configuration.load(reader);
+        } catch (IOException | SecurityException | IllegalArgumentException e) {
+            // Missing or unreadable configuration leaves the fields empty.
+            return;
+        }
+        txtDruckText.setText(configuration.getProperty("txtDruckText", ""));
+        lblSupportTitle.setText(configuration.getProperty("lblSupportTitle", ""));
+        lblSupportText.setText(configuration.getProperty("lblSupportText", ""));
+        txtDrucker.setText(configuration.getProperty("txtDrucker", txtDrucker.getText()));
+        String copies = configuration.getProperty("txtDruckAnzahl");
+        if (copies != null) {
+            try {
+                int count = Integer.parseInt(copies.trim());
+                if (count > 0) {
+                    txtDruckAnzahl.setText(Integer.toString(count));
+                }
+            } catch (NumberFormatException e) {
+                // Keep the previous copy count if the configured value is invalid.
+            }
+        }
+    }
+
+    private void loadExternalLogo() {
+        try {
+            File logo = new File("logo.png");
+            if (logo.isFile()) {
+                javax.swing.ImageIcon icon = new javax.swing.ImageIcon(logo.getAbsolutePath());
+                if (icon.getImageLoadStatus() == java.awt.MediaTracker.COMPLETE) {
+                    jLabel5.setIcon(icon);
+                }
+            }
+        } catch (SecurityException e) {
+            // Keep the bundled logo if the program directory cannot be accessed.
+        }
+    }
+
+    void errorBox(String title, String text) {
+        JOptionPane.showMessageDialog(this, text, title, JOptionPane.ERROR_MESSAGE);
+    }
+    void warnBox(String title, String text) {
+        JOptionPane.showMessageDialog(this, text, title, JOptionPane.WARNING_MESSAGE);
+    }
+    void infoBox(String title, String text) {
+        JOptionPane.showMessageDialog(this, text, title, JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    // function from https://git.slub-dresden.de/slub-referat-2-4/printlibero/blob/master/printLIBERO.java
+    private void printBeleg(String printerName, String myString, int anzahl) {
+        PrinterJob pj = PrinterJob.getPrinterJob();
+        PageFormat format = pj.getPageFormat(null);
+        Paper paper = format.getPaper();
+        paper.setImageableArea(0.0, 0.0, format.getPaper().getWidth(), format.getPaper().getHeight());
+        format.setPaper(paper);
+
+        pj.setPrintable(new Printable() {
+            @Override
+            public int print(Graphics g, PageFormat pf, int pageNum) throws PrinterException {
+                if (pageNum > 0) return Printable.NO_SUCH_PAGE;
+                //Graphics2D g2 = (Graphics2D)g;
+                int offset = 12; // for windows
+                if (System.getProperty("os.name").toLowerCase().equals("linux")) {
+                    offset = 0; // for linux
+                }
+                g.translate((int)pf.getImageableX()+offset, (int)pf.getImageableY());
+                if (pageNum == 0) {
+                    Font test = new Font("Arial", Font.PLAIN, 10);
+                    g.setFont(test);
+                    int y = g.getFontMetrics().getHeight();
+                    for (String line : myString.split("\n"))
+                        g.drawString(line, 2, y += g.getFontMetrics().getHeight());
+                    //g.fillRect(0,0,200,200);
+                    return Printable.PAGE_EXISTS;
+                }
+                return Printable.NO_SUCH_PAGE;
+            }
+        }, format);
+
+        PrintServiceAttributeSet printServiceAttributeSet = new HashPrintServiceAttributeSet();
+        printServiceAttributeSet.add(new PrinterName(printerName, null));
+        PrintService[] printServices = PrintServiceLookup.lookupPrintServices(null, printServiceAttributeSet);
+        
+        try {
+            pj.setPrintService(printServices[0]);
+            for(int i = 0; i < anzahl; i++) {
+                pj.print();
+            }
+        } catch (Exception exception) {
+            errorBox("Druckerfehler", exception.getLocalizedMessage());
+            System.err.println("Printing error: " + exception);
+        }
+    }
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnEnd;
+    private javax.swing.JButton btnEndRueckgabe;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel lblSupportTitle;
+    private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel lblSupportText;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JTabbedPane jtpControl;
+    private javax.swing.JTextField txtAusleiheBenutzer;
+    private javax.swing.JTextField txtAusleiheExemplar;
+    private javax.swing.JTextField txtAusleiheTage;
+    private javax.swing.JTextField txtDruckAnzahl;
+    private javax.swing.JTextArea txtDruckText;
+    private javax.swing.JTextField txtDrucker;
+    private javax.swing.JTextArea txtLog;
+    private javax.swing.JTextField txtRueckgabeExemplar;
+    // End of variables declaration//GEN-END:variables
+}

@@ -1,0 +1,6 @@
+BC | RSN | STO | KIT | NOT | aus | aBC | due | TSP | vorm | vBC | !
+
+00000001|1234|sto1|||1|0000000|11111|25/06/2020|0||
+00000002|123456|sto2||Anstreichungen|1|0000000|11111|01/07/2020|0||
+00000003|4321|sto1|1+Schaden|Ankreuzungen, Anstreichungen, Einband besch�digt 03.05.07|1|0000000|11111|12/03/2020|0||
+00000004|1234567|sto2|1+Schaden|Anstreichungen!25.2.05 Sa/03|1|0000000|11111|27/04/2020|1|87654321|
