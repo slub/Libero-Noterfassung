@@ -19,12 +19,12 @@ Verbesserte Version der offiziellen "Libero Emergency Circulation"-Anwendung. Sc
 - `make clean`: entfernt die erzeugten Build-Dateien
 
 # Verwendung
-- Anpassung der Texte in `config.properties` und ins Programmverzeichnis legen
-- ggf. eigenes Logo in das Programmverzeichnis legen (`logo.png`, 150x43px)
-- ggf. einen Libero-Export ausgeliehener Exemplare als `mex.txt` ins Programmverzeichnis legen
+- Anpassung der Texte in `config.properties` und ins Arbeitsverzeichnis legen
+- ggf. eigenes Logo in das Arbeitsverzeichnis legen (`logo.png`, 150x43px)
+- ggf. einen Libero-Export ausgeliehener Exemplare als `mex.txt` ins Arbeitsverzeichnis legen
 - Aufruf `java -jar SEC.jar` (Java/OpenJDK muss installiert sein)
   - optionaler Parameter: `--mex-file /path/to/mex.txt` (Standard: Arbeitsverzeichnis)
-  - optionaler Parameter: `--log-file ~/libero.log` (Standard: Arbeitsverzeichnis)
+  - optionaler Parameter: `--log-file ~/libero-noterfassung.dat` (Standard: `npc<username>.dat` im Arbeitsverzeichnis)
 - während der Laufzeit veränderter Druckername und Text wird abgespeichert unter:
   - Linux: `~/.java/.userPrefs`
   - Windows: Registry `HKEY_CURRENT_USER\Software\JavaSoft\Prefs\`
