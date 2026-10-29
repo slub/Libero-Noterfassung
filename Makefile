@@ -5,8 +5,9 @@ JAVA_RELEASE ?= 11
 
 CLASSES_DIR := build/classes
 JAR_FILE := build/SEC.jar
-SOURCES := $(wildcard src/*.java)
-RESOURCES := src/logo.png
+SOURCES := $(wildcard src/sec/*.java)
+RESOURCES := src/sec/logo.png
+MAIN_CLASS := sec.MainWindow
 
 .PHONY: all compile jar run clean
 
@@ -27,10 +28,10 @@ build/config.properties: config.properties
 	cp "$<" "$@"
 
 $(JAR_FILE): $(CLASSES_DIR)/.stamp
-	$(JAR) --create --file "$@" --main-class MainWindow -C "$(CLASSES_DIR)" .
+	$(JAR) --create --file "$@" --main-class $(MAIN_CLASS) -C "$(CLASSES_DIR)" .
 
 run: compile
-	$(JAVA) -cp "$(CLASSES_DIR)" MainWindow
+	$(JAVA) -cp "$(CLASSES_DIR)" $(MAIN_CLASS)
 
 clean:
 	$(RM) -r "$(CLASSES_DIR)" "$(JAR_FILE)"
